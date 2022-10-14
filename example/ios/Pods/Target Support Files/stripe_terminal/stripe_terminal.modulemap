@@ -1,0 +1,6 @@
+framework module stripe_terminal {
+  umbrella header "stripe_terminal-umbrella.h"
+
+  export *
+  module * { export * }
+}

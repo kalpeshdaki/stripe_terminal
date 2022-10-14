@@ -124,7 +124,8 @@ public class SwiftStripeTerminalPlugin: NSObject, FlutterPlugin, DiscoveryDelega
 //                     locationId: locationId!
 //                 )
                 let connectionConfig = InternetConnectionConfiguration(failIfInUse: false, allowCustomerCancel: true)
-                Terminal.shared.connectInternetReader(reader!, delegate: self, connectionConfig: connectionConfig) { reader, error in
+
+                Terminal.shared.connectInternetReader(reader!, connectionConfig: connectionConfig) { reader, error in
                     if reader != nil {
                         result(true)
                     } else {
