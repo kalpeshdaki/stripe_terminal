@@ -10,12 +10,18 @@ class StripeAPIClient: ConnectionTokenProvider {
     
     func fetchConnectionToken(_ completion: @escaping ConnectionTokenCompletionBlock) {
         methodChannel.invokeMethod("requestConnectionToken", arguments: nil) { secret in
-            do{
-                 let token =  secret as? String
-                completion(token, nil)
-            } catch {
-                completion(nil, StripeTerminalError.unableToFetchToken)
-            }
+                        if let token = secret as? String {
+                            completion(token, nil)
+                        } else {
+                            completion(nil, StripeTerminalError.unableToFetchToken)
+                        }
+
+                        /* do{
+                             let token =  secret as? String
+                            completion(token, nil)
+                        } catch {
+                            completion(nil, StripeTerminalError.unableToFetchToken)
+                        } */
         }
     }
 }
