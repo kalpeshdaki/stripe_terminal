@@ -77,7 +77,7 @@ public class SwiftStripeTerminalPlugin: NSObject, FlutterPlugin, DiscoveryDelega
                     }
                 })
             }
-            self.discoverCancelable = nil;
+            //self.discoverCancelable = nil;
             break;
         case "fetchConnectedReader":
             result(Terminal.shared.connectedReader?.toDict())
@@ -85,7 +85,63 @@ public class SwiftStripeTerminalPlugin: NSObject, FlutterPlugin, DiscoveryDelega
         case "connectionStatus":
             result(Terminal.shared.connectionStatus.rawValue)
             break;
+        case "connectToInternetReader":
+            if(Terminal.shared.connectionStatus == ConnectionStatus.notConnected){
+                let arguments = call.arguments as! Dictionary<String, Any>?
 
+                let readerSerialNumber = arguments!["readerSerialNumber"] as! String?
+                let failIfInUse = arguments!["failIfInUse"] as! Bool?
+
+                let reader = readers.first { reader in
+                    return reader.serialNumber == readerSerialNumber
+                }
+
+                if(reader == nil) {
+                    result(
+                        FlutterError(
+                            code: "stripeTerminal#readerNotFound",
+                            message: "Reader with provided serial number no longer exists",
+                            details: nil
+                        )
+                    )
+                 return
+                }
+
+                let connectionConfig = InternetConnectionConfiguration(
+                    failIfInUse: failIfInUse!
+                )
+
+                    Terminal.shared.connectInternetReader(reader!, connectionConfig: connectionConfig) { reader, error in
+                        if reader != nil {
+                             result(true)
+                        } else {
+                            result(
+                               FlutterError(
+                                   code: "stripeTerminal#unableToConnect",
+                                   message: error?.localizedDescription,
+                                   details: nil
+                               )
+                            )
+                        }
+                    }
+                } else if(Terminal.shared.connectionStatus == .connecting) {
+                    result(
+                        FlutterError(
+                           code: "stripeTerminal#deviceConnecting",
+                           message: "A new connection is being established with a device thus you cannot request a new connection at the moment.",
+                           details: nil
+                        )
+                    )
+                } else {
+                        result(
+                            FlutterError(
+                                code: "stripeTerminal#deviceAlreadyConnected",
+                                message: "A device with serial number \(Terminal.shared.connectedReader!.serialNumber) is already connected",
+                                details: nil
+                            )
+                        )
+                }
+                break;
         case "connectToReader":
             if(Terminal.shared.connectionStatus == ConnectionStatus.notConnected){
                 let arguments = call.arguments as! Dictionary<String, Any>?
@@ -123,7 +179,7 @@ public class SwiftStripeTerminalPlugin: NSObject, FlutterPlugin, DiscoveryDelega
 //                 let connectionConfig = BluetoothConnectionConfiguration(
 //                     locationId: locationId!
 //                 )
-                let connectionConfig = InternetConnectionConfiguration(failIfInUse: false, allowCustomerCancel: true)
+                let connectionConfig = InternetConnectionConfiguration(failIfInUse: true, allowCustomerCancel: true)
 
                 Terminal.shared.connectInternetReader(reader!, connectionConfig: connectionConfig) { reader, error in
                     if reader != nil {

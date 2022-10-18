@@ -135,4 +135,20 @@ class StripeTerminal {
 
     return StripePaymentIntent.fromMap(paymentIntent);
   }
+
+  Future<bool> connectToInternetReader(
+      String readerSerialNumber, {
+        bool failIfInUse = false,
+      }) async {
+    bool? connected =
+    await _channel.invokeMethod<bool?>("connectToInternetReader", {
+      "failIfInUse": failIfInUse,
+      "readerSerialNumber": readerSerialNumber,
+    });
+    if (connected == null) {
+      throw Exception("Unable to connect to the reader");
+    } else {
+      return connected;
+    }
+  }
 }

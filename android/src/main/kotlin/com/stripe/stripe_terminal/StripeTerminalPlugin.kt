@@ -173,6 +173,70 @@ class StripeTerminalPlugin : FlutterPlugin, MethodCallHandler,
       "connectionStatus" -> {
         result.success(handleConnectionStatus(Terminal.getInstance().connectionStatus))
       }
+      "connectToInternetReader" -> {
+        when (Terminal.getInstance().connectionStatus) {
+          ConnectionStatus.NOT_CONNECTED -> {
+            val arguments = call.arguments as HashMap<*, *>
+            val readerSerialNumber = arguments["readerSerialNumber"] as String
+            val failIfInUse = arguments["failIfInUse"] as Boolean
+
+            generateLog(
+              "connectToInternetReader",
+              "Started connecting to $readerSerialNumber"
+            )
+
+            val reader = activeReaders.firstOrNull {
+              it.serialNumber == readerSerialNumber
+            }
+
+            if (reader == null) {
+              result.error(
+                "stripeTerminal#readerNotFound",
+                "Reader with provided serial number no longer exists",
+                null
+              )
+              return
+            }
+
+
+            val connectionConfig =
+              ConnectionConfiguration.InternetConnectionConfiguration(
+                failIfInUse = failIfInUse
+              )
+            Terminal.getInstance().connectInternetReader(
+              reader,
+              connectionConfig,
+              object : ReaderCallback {
+                override fun onFailure(e: TerminalException) {
+                  result.error(
+                    "stripeTerminal#unableToConnect",
+                    e.errorMessage,
+                    e.stackTraceToString()
+                  )
+                }
+
+                override fun onSuccess(reader: Reader) {
+                  result.success(true)
+                }
+
+              })
+          }
+          ConnectionStatus.CONNECTING -> {
+            result.error(
+              "stripeTerminal#deviceConnecting",
+              "A new connection is being established with a device thus you cannot request a new connection at the moment.",
+              null
+            )
+          }
+          ConnectionStatus.CONNECTED -> {
+            result.error(
+              "stripeTerminal#deviceAlreadyConnected",
+              "A device with serial number ${Terminal.getInstance().connectedReader!!.serialNumber} is already connected",
+              null
+            )
+          }
+        }
+      }
       "connectToReader" -> {
         when (Terminal.getInstance().connectionStatus) {
           ConnectionStatus.NOT_CONNECTED -> {
