@@ -73,14 +73,29 @@ class StripeTerminalPlugin : FlutterPlugin, MethodCallHandler,
 
   fun _startStripe() {
     // Pass in the current application context, your desired logging level, your token provider, and the listener you created
-    if (!Terminal.isInitialized()) {
-      Terminal.initTerminal(
-        currentActivity!!.applicationContext,
-        logLevel,
-        tokenProvider,
-        listener
-      )
-    }
+    try{
+//         if (Terminal.getInstance() != null) {
+//           Terminal.getInstance().clearCachedCredentials();
+//         }
+
+        if (!Terminal.isInitialized()) {
+          Terminal.initTerminal(
+            currentActivity!!.applicationContext,
+            logLevel,
+            tokenProvider,
+            listener
+          )
+        }
+    } catch (e: TerminalException) {
+            if (Terminal.getInstance() != null) {
+                Terminal.getInstance().clearCachedCredentials();
+            }
+            throw RuntimeException(
+                "Location services are required in order to initialize " +
+                        "the Terminal.",
+                e
+            )
+        }
 
   }
 
@@ -99,6 +114,14 @@ class StripeTerminalPlugin : FlutterPlugin, MethodCallHandler,
         }
       }
       "discoverReaders#start" -> {
+//         if (!Terminal.isInitialized() && verifyGpsEnabled()) {
+//             _startStripe()
+//         }else{
+//           if (Terminal.getInstance() != null) {
+//              Terminal.getInstance().clearCachedCredentials();
+//            }
+//           _startStripe()
+//         }
         val arguments = call.arguments as HashMap<*, *>
         simulated = arguments["simulated"] as Boolean
 
