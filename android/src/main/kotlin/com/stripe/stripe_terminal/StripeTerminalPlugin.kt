@@ -116,6 +116,13 @@ class StripeTerminalPlugin : FlutterPlugin, MethodCallHandler,
       "discoverReaders#start" -> {
 //         if (!Terminal.isInitialized() && verifyGpsEnabled()) {
 //             _startStripe()
+//         }else if(Terminal.isInitialized()){
+//             Terminal.getInstance().clearCachedCredentials();
+//             _startStripe()
+//         }
+        
+//         if (!Terminal.isInitialized() && verifyGpsEnabled()) {
+//             _startStripe()
 //         }else{
 //           if (Terminal.getInstance() != null) {
 //              Terminal.getInstance().clearCachedCredentials();
